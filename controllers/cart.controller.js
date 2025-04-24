@@ -6,14 +6,16 @@ exports.addProductToCard = async (req, res) => {
     const { id: customerId } = req.user;
 
     if (!productId) {
-      return res.status(400).json({ message: "Product ID is required" });
+      return res
+        .status(400)
+        .json({ success: false, message: "Product ID is required" });
     }
 
     const cart = await Cart.findOne({ customer: customerId });
     if (!cart) {
-      if (cart.customer?.toString() !== customerId) {
-        return res.status(401).json({ message: "Unauthorized" });
-      }
+      // if (cart?.customer?.toString() !== customerId) {
+      //   return res.status(401).json({ message: "Unauthorized" });
+      // }
 
       const newCart = new Cart({
         customer: customerId,
@@ -27,7 +29,7 @@ exports.addProductToCard = async (req, res) => {
       await newCart.save();
       return res
         .status(200)
-        .json({ message: "Product added to cart successfully" });
+        .json({ success: true, message: "Product added to cart successfully" });
     } else {
       const productIndex = cart.products.findIndex(
         (product) => product.product.toString() === productId
@@ -43,10 +45,11 @@ exports.addProductToCard = async (req, res) => {
       await cart.save();
       return res
         .status(200)
-        .json({ message: "Product added to cart successfully" });
+        .json({ success: true, message: "Product added to cart successfully" });
     }
   } catch (error) {
-    return res.json(500).json({
+    return res.status(500).json({
+      success: false,
       message: "Internal Server Error",
       error: error.message,
     });
@@ -59,16 +62,16 @@ exports.removeProductFromCard = async (req, res) => {
     const { id: customerId } = req.user;
 
     if (!productId) {
-      return res.status(400).json({ message: "Product ID is required" });
+      return res.status(400).json({ success: false, message: "Product ID is required" });
     }
 
     const cart = await Cart.findOne({ customer: customerId });
 
     if (!cart) {
-      return res.status(404).json({ message: "Cart not found" });
+      return res.status(404).json({ success: false, message: "Cart not found" });
     } else {
       if (cart.customer.toString() !== customerId) {
-        return res.status(401).json({ message: "Unauthorized" });
+        return res.status(401).json({ success: false, message: "Unauthorized" });
       }
 
       const productIndex = cart.products.findIndex(
@@ -85,14 +88,15 @@ exports.removeProductFromCard = async (req, res) => {
         await cart.save();
         return res
           .status(200)
-          .json({ message: "Product removed from cart successfully" });
+          .json({ success: true, message: "Product removed from cart successfully" });
       } else {
-        return res.status(404).json({ message: "Product not found in cart" });
+        return res.status(404).json({ success: false, message: "Product not found in cart" });
       }
     }
   } catch (error) {
     console.log("error while removing item from cart : ", error);
-    return res.json(500).json({
+    return res.status(500).json({
+      success: false,
       message: "Internal Server Error",
       error: error.message,
     });
@@ -108,17 +112,18 @@ exports.getCart = async (req, res) => {
     );
 
     if (!cart) {
-      return res.status(404).json({ message: "Cart not found" });
+      return res.status(404).json({ success: false, message: "Cart not found" });
     }
 
     if (cart.customer.toString() !== customerId) {
-      return res.status(401).json({ message: "Unauthorized" });
+      return res.status(401).json({ success: false, message: "Unauthorized" });
     }
 
-    return res.status(200).json({ cart });
+    return res.status(200).json({ success: true, message: "Cart fetched successfully", cart });
   } catch (error) {
     console.log("error while getting cart : ", error);
-    return res.json(500).json({
+    return res.status(500).json({
+      success: false,
       message: "Internal Server Error",
       error: error.message,
     });
@@ -132,24 +137,25 @@ exports.emptyCart = async (req, res) => {
     const cart = await Cart.findOne({ customer: customerId });
 
     if (cart.customer.toString() !== customerId) {
-      return res.status(401).json({ message: "Unauthorized" });
+      return res.status(401).json({ success: false, message: "Unauthorized" });
     }
 
     if (!cart) {
-      return res.status(404).json({ message: "Cart not found" });
+      return res.status(404).json({ success: false, message: "Cart not found" });
     }
 
     if (cart.products.length === 0) {
-      return res.status(400).json({ message: "Cart is already empty" });
+      return res.status(400).json({ success: false, message: "Cart is already empty" });
     }
 
     cart.products = [];
     await cart.save();
 
-    return res.status(200).json({ message: "Cart emptied successfully" });
+    return res.status(200).json({ success: true, message: "Cart emptied successfully" });
   } catch (error) {
     console.log("error while emptying cart : ", error);
-    return res.json(500).json({
+    return res.status(500).json({
+      success: false,
       message: "Internal Server Error",
       error: error.message,
     });

@@ -40,7 +40,7 @@ exports.createWorkShop = async (req, res) => {
       !lng ||
       !thumbnail
     ) {
-      return res.status(400).json({ message: "All fields are required" });
+      return res.status(400).json({ success: false, message: "All fields are required" });
     }
 
     const uploadResult = await uploadImageTocloudinary(thumbnail, "thumbnails");
