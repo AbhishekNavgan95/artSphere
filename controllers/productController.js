@@ -56,7 +56,7 @@ exports.createProduct = async (req, res) => {
 exports.deleteProduct = async (req, res) => {
   try {
     const productId = req.params.id;
-    const { id } = req.user.id;
+    const { id } = req.user;
     const product = await Product.findById(productId);
 
     if (!product) {
