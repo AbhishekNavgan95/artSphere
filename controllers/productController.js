@@ -107,13 +107,22 @@ exports.updateProduct = async (req, res) => {
 
       const uploadedImages = [];
 
-      for (let file of files) {
-        const uploadResult = await uploadImageTocloudinary(file, "products");
+      if (Array.isArray(files)) {
+        for (let file of files) {
+          const uploadResult = await uploadImageTocloudinary(file, "products");
+          uploadedImages.push({
+            secure_url: uploadResult.secure_url,
+            public_id: uploadResult.public_id,
+          });
+          fs.unlinkSync(file.tempFilePath);
+        }
+      } else {
+        const uploadResult = await uploadImageTocloudinary(files, "products");
         uploadedImages.push({
           secure_url: uploadResult.secure_url,
           public_id: uploadResult.public_id,
         });
-        fs.unlinkSync(file.tempFilePath);
+        fs.unlinkSync(files.tempFilePath);
       }
 
       product.images = uploadedImages;
