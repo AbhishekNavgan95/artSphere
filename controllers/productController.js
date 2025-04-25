@@ -85,7 +85,7 @@ exports.deleteProduct = async (req, res) => {
 exports.updateProduct = async (req, res) => {
   try {
     const productId = req.params.id;
-    const { id } = req.user.id;
+    const { id } = req.user;
     const { title, description, price, category, isAvailable } = req.body;
     const files = req.files?.images;
 
