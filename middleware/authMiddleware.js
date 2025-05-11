@@ -1,55 +1,21 @@
 const jwt = require("jsonwebtoken");
 
 const authenticateUser = (req, res, next) => {
-  const token = req.cookies.token;
+  const authHeader = req.headers.authorization;
 
-  if (!token) {
-    return res.status(401).json({ success: false, message: "No token found" });
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return res.status(401).json({ success: false, message: "No token provided" });
   }
 
-  jwt.verify(token, process.env.JWT_SECRET, async (err, decoded) => {
-    if (err) {
-      if (err.name === "TokenExpiredError") {
-        try {
-          const oldDecoded = jwt.decode(token); // decode without verifying
-          if (!oldDecoded) {
-            return res
-              .status(401)
-              .json({ success: false, message: "Invalid token" });
-          }
+  const token = authHeader.split(" ")[1];
 
-          // Optional: Validate user from DB again if needed
-          const newToken = jwt.sign(
-            { id: oldDecoded.id, role: oldDecoded.role },
-            process.env.JWT_SECRET,
-            { expiresIn: "1d" }
-          );
-
-          res.cookie("token", newToken, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "Lax",
-            maxAge: 24 * 60 * 60 * 1000,
-          });
-
-          req.user = oldDecoded;
-          next();
-        } catch (err) {
-          return res
-            .status(500)
-            .json({ success: false, message: "Re-authentication failed" });
-        }
-      } else {
-        return res
-          .status(403)
-          .json({ success: false, message: "Token invalid! login again" });
-      }
-    } else {
-      // Token is valid
-      req.user = decoded;
-      next();
-    }
-  });
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = decoded;
+    next();
+  } catch (err) {
+    return res.status(401).json({ success: false, message: "Invalid or expired token" });
+  }
 };
 
 const isCustomer = (req, res, next) => {

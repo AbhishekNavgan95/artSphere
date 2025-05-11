@@ -59,9 +59,8 @@ exports.signUp = async (req, res) => {
       res
         .status(201)
         .json({ success: true, message: "Artist registered successfully" });
+    }
 
-    } 
-    
     // customer registration
     else if (role === "customer") {
       console.log("registering customer 💸💸💸💸");
@@ -100,8 +99,8 @@ exports.signUp = async (req, res) => {
       res
         .status(201)
         .json({ success: true, message: "Customer registered successfully" });
-    } 
-    
+    }
+
     // admin registration
     else if (role === "admin") {
       console.log("registering admin 👮👮👮👮👮");
@@ -157,9 +156,7 @@ exports.signUp = async (req, res) => {
       res.status(400).json({ success: false, message: "Invalid role" });
     }
   } catch (error) {
-    return res
-      .status(500)
-      .json({ success: false, message: error.message });
+    return res.status(500).json({ success: false, message: error.message });
   }
 };
 
@@ -241,14 +238,20 @@ exports.login = async (req, res) => {
       { expiresIn: "1m" }
     );
 
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "Strict",
-      maxAge: 24 * 60 * 60 * 1000, // 1 day
-    });
+    // res.cookie("token", token, {
+    //   httpOnly: true,
+    //   secure: process.env.NODE_ENV === "production",
+    //   sameSite: "Strict",
+    //   maxAge: 24 * 60 * 60 * 1000, // 1 day
+    // });
 
-    res.status(200).json({ success: true, message: "Login successful" });
+    res.status(200).json({
+      success: true,
+      data: {
+        token: token,
+      },
+      message: "Login successful",
+    });
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });
   }
