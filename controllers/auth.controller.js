@@ -5,6 +5,8 @@ const Customer = require("../models/Customer");
 const generateUniqueOtp = require("../utils/generateUniqueOtp");
 const sendMail = require("../utils/sendMail");
 const bcrypt = require("bcryptjs");
+const Product = require("../models/Product");
+const WorkShop = require("../models/WorkShop");
 
 exports.signUp = async (req, res) => {
   try {
@@ -30,7 +32,7 @@ exports.signUp = async (req, res) => {
       }
 
       const otp = await generateUniqueOtp(role);
-      const hashedPassword = await bcrypt.hashSync(password, 10);
+      const hashedPassword = await bcrypt.hash(password, 10);
 
       const artist = new Artist({
         username,
@@ -72,7 +74,7 @@ exports.signUp = async (req, res) => {
       }
 
       const otp = await generateUniqueOtp(role);
-      const hashedPassword = await bcrypt.hashSync(password, 10);
+      const hashedPassword = await bcrypt.hash(password, 10);
 
       const customer = new Customer({
         username,
@@ -125,7 +127,7 @@ exports.signUp = async (req, res) => {
       }
 
       const otp = await generateUniqueOtp(role);
-      const hashedPassword = await bcrypt.hashSync(password, 10);
+      const hashedPassword = await bcrypt.hash(password, 10);
 
       const admin = new Admin({
         username,
@@ -235,7 +237,7 @@ exports.login = async (req, res) => {
     const token = jwt.sign(
       { id: user._id, role: user.role },
       process.env.JWT_SECRET,
-      { expiresIn: "1m" }
+      { expiresIn: "1d" }
     );
 
     // res.cookie("token", token, {
@@ -337,5 +339,39 @@ exports.resetPassword = async (req, res) => {
     });
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+exports.getArtistDetails = async (req, res) => {
+  try {
+    const { id: artistId } = req.user;
+    const artist = await Artist.findById(artistId).select("-password -otp");
+    if (!artist) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Artist not found" });
+    }
+
+    const products = await Product.find({ artist: artistId }).populate([
+      { path: "category", select: "name" },
+      { path: "artist", select: "username" }, // or "username name"
+    ]);
+
+    const workshops = await WorkShop.find({ artist: artistId }).populate([
+      { path: "artist", select: "username" }, // or "username name"
+    ]);
+
+    if (!products || products.length === 0) {
+      return res
+        .status(404)
+        .json({ success: false, message: "No products found for this artist" });
+    }
+
+    res
+      .status(200)
+      .json({ success: true, data: { products, artist, workshops } });
+  } catch (error) {
+    console.error("Error fetching artist products and workshops:", error);
+    res.status(500).json({ success: false, message: error.message });
   }
 };

@@ -31,6 +31,7 @@ app.use(
 );
 
 app.use("/api/auth", require("./routes/authRoutes"));
+app.use("/api/profile", require("./routes/profileRoutes"));
 app.use("/api/category", require("./routes/categoryRoutes"));
 app.use("/api/product", require("./routes/productRoutes"));
 app.use('/api/workshop', require("./routes/WorkShopRoutes"));

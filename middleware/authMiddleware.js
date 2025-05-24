@@ -7,13 +7,20 @@ const authenticateUser = (req, res, next) => {
     return res.status(401).json({ success: false, message: "No token provided" });
   }
 
+  
   const token = authHeader.split(" ")[1];
-
+  console.log("token : ", token);
+  
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     req.user = decoded;
+
+    console.log("decoded user : ", req.user);
+
     next();
   } catch (err) {
+    console.log("error : ", err)
+
     return res.status(401).json({ success: false, message: "Invalid or expired token" });
   }
 };

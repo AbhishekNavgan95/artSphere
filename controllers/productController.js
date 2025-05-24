@@ -4,6 +4,7 @@ const {
   uploadImageTocloudinary,
   deleteFromCloudinary,
 } = require("../utils/imageUpload");
+const WorkShop = require("../models/WorkShop");
 
 exports.createProduct = async (req, res) => {
   try {
@@ -144,7 +145,10 @@ exports.updateProduct = async (req, res) => {
 
 exports.getAllProducts = async (req, res) => {
   try {
-    const products = await Product.find().populate("category artist");
+    const products = await Product.find().populate([
+      { path: "category", select: "name" },
+      { path: "artist", select: "username" }, // or add more non-sensitive fields
+    ]);
 
     res.status(200).json({ success: true, products });
   } catch (error) {
@@ -155,9 +159,10 @@ exports.getAllProducts = async (req, res) => {
 exports.getProductById = async (req, res) => {
   try {
     const productId = req.params.id;
-    const product = await Product.findById(productId).populate(
-      "category artist"
-    );
+    const product = await Product.findById(productId).populate([
+      { path: "category", select: "name" },
+      { path: "artist", select: "username" }, // or "username name"
+    ]);
 
     if (!product) {
       return res
